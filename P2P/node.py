@@ -3,6 +3,7 @@ from threading import Thread
 import numpy as np
 import struct
 
+
 class Node(object):
     R = 20
 
@@ -14,6 +15,8 @@ class Node(object):
         self.port = self.define_port()
         self.host_port = self.port + self.scan_range[0]
         self.scan_range = np.delete(self.scan_range, self.port)
+
+        self.message_table = []
 
     # Определения порта для узла в зависимости от позиции
     # относительно самого себя
@@ -72,7 +75,7 @@ class Node(object):
 
     # Логика серверного потока узла
     def server_side(self):
-
+        self.message_table.append('Server side')
         print('Server side')
 
         sock = socket.socket()
@@ -83,11 +86,12 @@ class Node(object):
             conn, addr = sock.accept()
             conn.send(str.encode('Открыт канал связи с {}'.format(self.host_port)))
             msg = conn.recv(100)
+            self.message_table.append(msg.decode())
             print(msg.decode())
 
     # Логика клиентского потока узла
     def client_side(self):
-
+        self.message_table.append('Client side')
         print('Client side')
 
         def ping_port(port_number, out_info):
@@ -105,9 +109,9 @@ class Node(object):
 
             if connected:
 
-                # while True:
                 sock.send(str.encode('Открыт канал связи с {}'.format(self.host_port)))
                 msg = sock.recv(100)
+                self.message_table.append(msg.decode())
                 print(msg.decode())
                 self.reporting(report_type=0)
                 sock.close()
