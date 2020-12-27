@@ -2,6 +2,10 @@ import socket
 from threading import Thread
 import numpy as np
 import struct
+from storebase.database import Blockchain
+import json
+import time
+
 
 class Node(object):
     R = 20
@@ -14,6 +18,15 @@ class Node(object):
         self.port = self.define_port()
         self.host_port = self.port + self.scan_range[0]
         self.scan_range = np.delete(self.scan_range, self.port)
+        self.coins = np.random.randint(1, 20)
+
+        self.blockchain = Blockchain(self.port, file=False)
+        self.chain_lengths = 0
+
+        print('Мой порт:', self.port)
+        print('Мой баланс:', self.coins)
+        print('Моя инициализирующая цепочка:', self.blockchain.chain)
+
 
     # Определения порта для узла в зависимости от позиции
     # относительно самого себя
@@ -70,6 +83,24 @@ class Node(object):
         sock.send(message)
         sock.close()
 
+    def create_block_for_sending(self, _to, _amount):
+
+        self.blockchain.add_transaction(_to=_to, _amount=_amount)
+        self.blockchain.add_block(hash='hash_' + str(np.random.randint(0, 1000)) + '_' + str(self.port),
+                                  evidence='evidence_' + str(self.port))
+        self.blockchain.save_chain()
+
+    # Вот тут вместо порта id
+    def update_balance(self):
+        for block in self.blockchain.chain:
+            try:
+                if int(block['transactions'][0]['to']) == self.host_port:
+                    print('Вам монеты')
+                    self.coins += int(block['transactions'][0]['amount'])
+            except:
+                continue
+        print('Баланс', self.coins)
+
     # Логика серверного потока узла
     def server_side(self):
 
@@ -84,6 +115,19 @@ class Node(object):
             conn.send(str.encode('Открыт канал связи с {}'.format(self.host_port)))
             msg = conn.recv(100)
             print(msg.decode())
+
+            _to = input('Кому отправить?')
+            if _to != 'n':
+
+                # self.blockchain = Blockchain(id=str(self.port))
+                self.chain_lengths = len(self.blockchain)
+                _amount = input('Сколько отправить?')
+                self.create_block_for_sending(_to=_to, _amount=_amount)
+
+                chain = self.blockchain.get_chain()
+                conn.send(chain.encode())
+
+                print(self.blockchain.chain)
 
     # Логика клиентского потока узла
     def client_side(self):
@@ -109,6 +153,36 @@ class Node(object):
                 sock.send(str.encode('Открыт канал связи с {}'.format(self.host_port)))
                 msg = sock.recv(100)
                 print(msg.decode())
+
+                time.sleep(2)
+
+                chain_recv = sock.recv(2000)
+                chain_recv = chain_recv.decode()
+                chain_recv = json.loads(chain_recv)
+
+                if len(chain_recv) >= self.chain_lengths:
+                    self.chain_lengths = len(chain_recv)
+
+                    print('>=')
+                    print(chain_recv)
+
+                    for block in chain_recv:
+                        if block not in self.blockchain.chain:
+                            self.chain_lengths = len(self.blockchain.chain) + 1
+                            self.blockchain.add_transaction(_to=block['transactions'][0]['to'],
+                                                            _amount=block['transactions'][0]['amount'],
+                                                            _from=block['transactions'][0]['from'],
+                                                            _time=block['transactions'][0]['time']
+                                                            )
+                            self.blockchain.add_block(hash=block['hash'],
+                                                      evidence=block['evidence'],
+                                                      _time=block['time'])
+                print(self.blockchain.chain)
+
+                self.update_balance()
+
+                self.blockchain.save_chain()
+
                 self.reporting(report_type=0)
                 sock.close()
 
