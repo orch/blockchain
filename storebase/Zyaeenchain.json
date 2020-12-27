@@ -1,1 +1,0 @@
-[{"index": 1, "time": 1609085022.4907212, "transactions": [], "evidence": "evidence", "hash": "prev_hash"}, {"index": 2, "time": 1609085022.4907212, "transactions": [{"from": "Zyaeen", "to": "Nastya", "amount": 123, "time": 1609085022.4907212}], "evidence": "evidence_zyaeen", "hash": "new_hash_zyaeen"}]
