@@ -1,0 +1,1 @@
+[{"index": 1, "time": 1609083521.92882, "transactions": [], "evidence": "evidence", "hash": "prev_hash"}, {"index": 2, "time": 1609083568.0000732, "transactions": [{"from": 21, "to": "USer234", "amount": "675", "time": 1609083568.0000732}], "evidence": "evidence_21", "hash": "hash_627_21"}]
