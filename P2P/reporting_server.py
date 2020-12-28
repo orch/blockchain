@@ -18,7 +18,7 @@ while True:
     conn, addr = sock.accept()
     message = conn.recv(8)
     try:
-        message = struct.unpack(">HHHH", message)
+        message = struct.unpack(">hhhh", message)
         report_type = message[0]
         x = message[1]
         y = message[2]
@@ -36,7 +36,7 @@ while True:
             for key in keys_to_del:
                 del matrix[key]
     except:
-        message = struct.unpack(">HH", message)
+        message = struct.unpack(">hh", message)
         # print(message)
         host_port, port = message[0], message[1]
         key = '{}-{}'.format(host_port, port)

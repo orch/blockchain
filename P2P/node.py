@@ -18,19 +18,47 @@ class Node(object):
         self.port = self.define_port()
         self.host_port = self.port + self.scan_range[0]
         self.scan_range = np.delete(self.scan_range, self.port)
+        self.check_border()
         self.coins = np.random.randint(1, 20)
         self.times = []
         self.blockchain = Blockchain(self.port, file=False)
         self.chain_lengths = 0
 
-        print('Мой порт:', self.port)
+        print('Мой порт:', self.host_port)
         print('Мой баланс:', self.coins)
         print('Моя инициализирующая цепочка:', self.blockchain.chain)
+
+    def check_border(self):
+        if self.y == 1:
+            if self.x > 0:
+                self.scan_range = np.int16(np.concatenate((np.arange(4000, 4500), self.scan_range), axis=None))
+            else:
+                self.scan_range = np.int16(np.concatenate((np.arange(3000, 3500), self.scan_range), axis=None))
+        if self.y == -1:
+            if self.x > 0:
+                self.scan_range = np.int16(np.concatenate((np.arange(1000, 1500), self.scan_range), axis=None))
+            else:
+                self.scan_range = np.int16(np.concatenate((np.arange(2000, 2500), self.scan_range), axis=None))
+
+        if self.x == 1:
+            if self.y > 0:
+                self.scan_range = np.int16(np.concatenate((np.arange(2000, 2500), self.scan_range), axis=None))
+            else:
+                self.scan_range = np.int16(np.concatenate((np.arange(3000, 3500), self.scan_range), axis=None))
+        if self.x == -1:
+            if self.y > 0:
+                self.scan_range = np.int16(np.concatenate((np.arange(1000, 1500), self.scan_range), axis=None))
+            else:
+                self.scan_range = np.int16(np.concatenate((np.arange(4000, 4500), self.scan_range), axis=None))
+
+        self.scan_range = np.sort(self.scan_range)
+
+        return
 
     # Определения порта для узла в зависимости от позиции
     # относительно самого себя
     def define_port(self):
-        return int(self.R * self.x + self.y)
+        return int(np.abs((self.R * self.x + self.y)))
 
     # Определение порта относительно круга
     def define_range(self):
@@ -70,7 +98,7 @@ class Node(object):
 
         sock = socket.socket()
         sock.connect(('localhost', 5050))
-        message = struct.pack(">HHHH", report_type, self.x, self.y, self.host_port)
+        message = struct.pack(">hhhh", report_type, self.x, self.y, self.host_port)
         sock.send(message)
         sock.close()
 
@@ -78,7 +106,7 @@ class Node(object):
 
         sock = socket.socket()
         sock.connect(('localhost', 5050))
-        message = struct.pack(">HH", self.host_port, destination_port)
+        message = struct.pack(">hh", self.host_port, destination_port)
         sock.send(message)
         sock.close()
 
@@ -168,7 +196,7 @@ class Node(object):
                     print(chain_recv)
 
                     for block in chain_recv:
-                        if block not in self.blockchain.chain:
+                        if block not in self.blockchain.chain and len(block['transactions']) != 0:
                             self.chain_lengths = len(self.blockchain.chain) + 1
                             self.blockchain.add_transaction(_to=block['transactions'][0]['to'],
                                                             _amount=block['transactions'][0]['amount'],

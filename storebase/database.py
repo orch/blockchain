@@ -16,9 +16,15 @@ class Blockchain(object):
             self.chain = chain
         else:
             if file is False:
-                file = open("history/{}_chain.json".format(self.id), 'r')
-                self.chain = json.load(file)
-                file.close()
+                try:
+                    file = open("history/{}_chain.json".format(self.id), 'r')
+                    self.chain = json.load(file)
+                    file.close()
+                except:
+                    file = open("history/{}_chain.json".format(self.id), 'w')
+                    self.add_block(hash='prev_hash', evidence='evidence')
+                    json.dump(self.chain, file)
+                    file.close()
             else:
                 self.add_block(hash='prev_hash', evidence='evidence')
 
@@ -73,7 +79,7 @@ class Blockchain(object):
     # Сохраняем цепь в файл
     def save_chain(self):
 
-        file = str(self.id) + '_chain.json'
+        file = "history/{}_chain.json".format(self.id)
         file = open(file, 'w')
         json.dump(self.chain, file)
         file.close()
