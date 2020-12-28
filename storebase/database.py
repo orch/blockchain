@@ -16,7 +16,7 @@ class Blockchain(object):
             self.chain = chain
         else:
             if file is False:
-                file = open("start_chain.json", 'r')
+                file = open("history/{}_chain.json".format(self.id), 'r')
                 self.chain = json.load(file)
                 file.close()
             else:

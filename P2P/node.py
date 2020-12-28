@@ -19,14 +19,13 @@ class Node(object):
         self.host_port = self.port + self.scan_range[0]
         self.scan_range = np.delete(self.scan_range, self.port)
         self.coins = np.random.randint(1, 20)
-
+        self.times = []
         self.blockchain = Blockchain(self.port, file=False)
         self.chain_lengths = 0
 
         print('Мой порт:', self.port)
         print('Мой баланс:', self.coins)
         print('Моя инициализирующая цепочка:', self.blockchain.chain)
-
 
     # Определения порта для узла в зависимости от позиции
     # относительно самого себя
@@ -94,9 +93,11 @@ class Node(object):
     def update_balance(self):
         for block in self.blockchain.chain:
             try:
-                if int(block['transactions'][0]['to']) == self.host_port:
+                if int(block['transactions'][0]['to']) == self.host_port \
+                        and block['transactions'][0]['time'] not in self.times:
                     print('Вам монеты')
                     self.coins += int(block['transactions'][0]['amount'])
+                    self.times.append(block['transactions'][0]['time'])
             except:
                 continue
         print('Баланс', self.coins)
