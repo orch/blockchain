@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
     Тут все для визуализации
 """
 
-
 sock = socket.socket()
 sock.bind(('', 5050))
 sock.listen(1)
@@ -24,12 +23,12 @@ while True:
         x = message[1]
         y = message[2]
         port = message[3]
-        print(x, y)
+        # print(x, y)
 
-        if report_type is 1:
+        if report_type == 1:
             nodes[port] = [x, y]
         else:
-            del nodes[port]
+            # del nodes[port]
             keys_to_del = []
             for key in matrix.keys():
                 if str(port) in key:
@@ -38,8 +37,11 @@ while True:
                 del matrix[key]
     except:
         message = struct.unpack(">HH", message)
+        # print(message)
         host_port, port = message[0], message[1]
-        matrix['{}-{}'.format(host_port, port)] = [nodes[host_port], nodes[port]]
+        key = '{}-{}'.format(host_port, port)
+        print(key)
+        matrix[key] = [nodes[host_port], nodes[port]]
 
     circle = plt.Circle((0, 0), 20, color='b', fill=False)
     plt.figure(figsize=(7, 7))
@@ -53,6 +55,3 @@ while True:
         plt.plot(nodes[key][0], nodes[key][1], color='red', marker='o', markersize=5)
     for key in matrix.keys():
         plt.plot((matrix[key][0][0], matrix[key][1][0]), (matrix[key][0][1], matrix[key][1][1]), color='red')
-
-    plt.savefig('map.png')
-    plt.show()

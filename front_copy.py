@@ -26,17 +26,32 @@ class Page1(tk.Frame):
     def authentication(self):
         self.name_value = self.page1_inpt.get()
         self.page1_inpt.delete(0, 'end')
-        print(self.name_value)
 
-        self.controller.node = Node((2, 3))
+        self.controller.node = Node((2, 3), self.name_value)
         thr = Thread(target=self.controller.node.start_working)
         thr.start()
-        # thr.join()
 
         if self.old_value != self.name_value:
-            label = tk.Label(self.controller.frames[Page2], text=self.name_value, width=70)
-            label.grid(row=2, column=1, padx=0, pady=20)
+            label = tk.Label(self.controller.frames[Page2], text=self.name_value, width=10)
+            label.grid(row=2, column=1, padx=0, pady=10, sticky=E)
             self.old_value = self.name_value
+
+        label_balance = tk.Label(self.controller.frames[Page2], text='Мой баланс:', width=10)
+        label_balance.grid(row=3, column=1, padx=0, pady=10, sticky=E)
+        label_balance_val = tk.Label(self.controller.frames[Page2], text=self.controller.node.coins, width=5)
+        label_balance_val.grid(row=3, column=2, padx=0, pady=10, sticky=W)
+
+        # btn_balance = tk.Button(self.controller.frames[Page2], text='Обновить баланс:', height=0)
+        # btn_balance.grid(row=3, column=3, padx=0, pady=10)
+
+        label_port = tk.Label(self.controller.frames[Page2], text='Мой порт:', width=10)
+        label_port.grid(row=4, column=1, padx=0, pady=10, sticky=E)
+        label_port_val = tk.Label(self.controller.frames[Page2], text=self.controller.node.port, width=5)
+        label_port_val.grid(row=4, column=2, padx=0, pady=10, sticky=W)
+
+        label_err = tk.Label(self.controller.frames[Page2], text='', width=30)
+        label_err.grid(row=6, column=1, padx=0, pady=10, columnspan=2)
+
         self.controller.frames[Page2].lift()
 
 
@@ -47,20 +62,23 @@ class Page2(tk.Frame):
         self.value = ''
 
         auth_btn = tk.Button(self, text='Посмотреть список соединений', command=self.connections, height=0)
-        auth_btn.grid(row=3, column=1, padx=0, pady=20)
+        auth_btn.grid(row=5, column=1, padx=0, pady=20, columnspan=2)
+
         self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
 
     def connections(self):
-        print('djkf')
-        print(self.controller.node.message_table)
+        if isinstance(self.controller.node, Node):
+            messages = self.controller.node.message_table
 
-        messages = self.controller.node.message_table
-
-        list_msg = Listbox(self.controller.frames[Page2], height=len(messages) + 2, width=30)
-        list_msg.delete(0, len(messages) + 2)
-        list_msg.grid(row=4, column=1, padx=0, pady=20)
-        for i in messages:
-            list_msg.insert(0, i)
+            list_msg = Listbox(self.controller.frames[Page2], height=len(messages) + 2, width=30)
+            list_msg.delete(0, len(messages) + 2)
+            list_msg.grid(row=6, column=1, padx=0, pady=20, columnspan=2)
+            for i in messages:
+                list_msg.insert(0, i)
+        else:
+            label_err = tk.Label(self, text='Вы не авторизованы', width=30)
+            label_err.grid(row=6, column=1, padx=0, pady=10, columnspan=2)
 
 
 class Page3(tk.Frame):
@@ -68,8 +86,21 @@ class Page3(tk.Frame):
         tk.Frame.__init__(self)
         self.controller = controller
 
-        label = tk.Label(self, text="This is page 3")
-        label.pack(side="top", fill="both")
+        label_to = tk.Label(self, text='Кому:', width=10)
+        label_to.grid(row=3, column=1, padx=0, pady=10, sticky=E)
+        label_to_val = tk.Entry(self, width=30)
+        label_to_val.grid(row=3, column=2, padx=0, pady=10, sticky=W)
+
+        label_price = tk.Label(self, text='Сумма:', width=10)
+        label_price.grid(row=4, column=1, padx=0, pady=10, sticky=E)
+        label_price_val = tk.Entry(self, width=30)
+        label_price_val.grid(row=4, column=2, padx=0, pady=10, sticky=W)
+
+        send_btn = tk.Button(self, text='Отправить', height=0)
+        send_btn.grid(row=5, column=1, padx=0, pady=20, columnspan=2)
+
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
 
 
 class Controller(Tk):
@@ -92,7 +123,7 @@ class Controller(Tk):
 
         b1 = tk.Button(buttonframe, text="Авторизация", command=self.frames[Page1].lift)
         b2 = tk.Button(buttonframe, text="Личный кабинет", command=self.frames[Page2].lift)
-        b3 = tk.Button(buttonframe, text="Page 3", command=self.frames[Page3].lift)
+        b3 = tk.Button(buttonframe, text="Отправить", command=self.frames[Page3].lift)
 
         b1.pack(side="left")
         b2.pack(side="left")
